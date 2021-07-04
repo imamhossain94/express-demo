@@ -16,21 +16,23 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/courses', (req, res) => {
-    res.send([1, 2, 3, 4]);
+    //res.send([1, 2, 3, 4]);
+    res.send(courses);
 });
 
+
+//Post request
 app.post('/api/courses', (req, res) => {
 
-    // Joi schema
-    const schema = Joi.object({
-        name: Joi.string().min(3).required()
-    });
-    const result = schema.validate(req.body);    //console.log(result);
-
-    // Input validation
-    if(result.error) {
+    const {
+        error
+    } = validateCourse(req.body);
+    //Validate 
+    //If invalid, return 400 - Bad request
+        // Input validation
+    if(error) {
         //400 Bad Request
-        res.status(400).send(result.error.details[0].message);
+        res.status(400).send(error.details[0].message);
         return;
     }
 
@@ -58,11 +60,45 @@ app.get('/api/post/:year/:month', (req, res) => {
 
 app.get('/api/courses/:id', (req, res) => {
     const course = courses.find(c => c.id === parseInt(req.params.id));
-
     if(!course) res.status(404).send('The course with the given id not found');
 
     res.send(course);
 });
+
+
+
+//Put request
+app.put('/api/courses/:id', (req, res) => {
+    //Looking u the course
+    //If not existing, return 404
+    const course = courses.find(c => c.id === parseInt(req.params.id));
+    if(!course) res.status(404).send('The course with the given id not found');
+
+    const {error} = validateCourse(req.body);
+    //Validate 
+    //If invalid, return 400 - Bad request
+        // Input validation
+    if(error) {
+        //400 Bad Request
+        res.status(400).send(error.details[0].message);
+        return;
+    }
+
+    // Update course
+    course.name = req.body.name;
+    res.send(course);
+    //Return updated course
+});
+
+//Validator function
+function validateCourse(course) {
+    const schema = Joi.object({
+        name: Joi.string().min(3).required()
+    });
+
+    return schema.validate(course);    //console.log(result);
+}
+
 
 
 const port = process.env.PORT || 3000;
