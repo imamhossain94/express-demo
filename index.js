@@ -30,11 +30,8 @@ app.post('/api/courses', (req, res) => {
     //Validate 
     //If invalid, return 400 - Bad request
         // Input validation
-    if(error) {
-        //400 Bad Request
-        res.status(400).send(error.details[0].message);
-        return;
-    }
+    if(error) return res.status(400).send(error.details[0].message);
+
 
 
     const course = {
@@ -60,7 +57,7 @@ app.get('/api/post/:year/:month', (req, res) => {
 
 app.get('/api/courses/:id', (req, res) => {
     const course = courses.find(c => c.id === parseInt(req.params.id));
-    if(!course) res.status(404).send('The course with the given id not found');
+    if(!course) return res.status(404).send('The course with the given id not found');
 
     res.send(course);
 });
@@ -72,23 +69,40 @@ app.put('/api/courses/:id', (req, res) => {
     //Looking u the course
     //If not existing, return 404
     const course = courses.find(c => c.id === parseInt(req.params.id));
-    if(!course) res.status(404).send('The course with the given id not found');
+    if(!course) return res.status(404).send('The course with the given id not found');
 
     const {error} = validateCourse(req.body);
     //Validate 
     //If invalid, return 400 - Bad request
         // Input validation
-    if(error) {
-        //400 Bad Request
-        res.status(400).send(error.details[0].message);
-        return;
-    }
+    if(error) return res.status(400).send(error.details[0].message);
+
 
     // Update course
     course.name = req.body.name;
     res.send(course);
     //Return updated course
 });
+
+
+//Http Delete request
+app.delete('/api/courses/:id', (req, res) => {
+    //Look up the course
+    //Note existing, retun 400
+    const course = courses.find(c => c.id === parseInt(req.params.id));
+    if(!course) return res.status(404).send('The course with the given id not found');
+
+    //Delete the course
+    const index = courses.indexOf(course);
+    courses.splice(index, 1);
+
+    return res.send(course);
+});
+
+
+
+
+
 
 //Validator function
 function validateCourse(course) {
@@ -98,8 +112,6 @@ function validateCourse(course) {
 
     return schema.validate(course);    //console.log(result);
 }
-
-
 
 const port = process.env.PORT || 3000;
 
